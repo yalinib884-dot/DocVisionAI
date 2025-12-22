@@ -1,0 +1,172 @@
+{
+  "sessions": [
+    {
+      "id": "d284254f-5ab3-4e5f-ad90-3277d16d3da1",
+      "title": "who is co-founder",
+      "created_at": "2025-12-08T07:36:38",
+      "messages": [
+        {
+          "role": "user",
+          "content": "who is co-founder"
+        },
+        {
+          "role": "assistant",
+          "content": "According to the provided context, Sahil Miglani is the Co-Founder. \n\nSource: \"Sahil Miglani Bittoo Aggarwal Co-Founder Program Director\" (snippet)"
+        },
+        {
+          "role": "user",
+          "content": "name of the course"
+        },
+        {
+          "role": "assistant",
+          "content": "The name of the course is \"Learn Python - Free Course With Certification\".\n\nSources:\n- Certificate of Completion (snippet): \"Learn Python - Free Course With Certification\"\n- Certificate of Completion (snippet): \"Learn Python - Free Course With Certification and has earned this certificate\""
+        }
+      ]
+    },
+    {
+      "id": "3f2a829e-0603-48fa-80c7-c31354939eb0",
+      "title": "New chat",
+      "created_at": "2025-12-08T07:38:36",
+      "messages": []
+    },
+    {
+      "id": "27b76815-4242-4137-a139-8e0ad9ea8ef0",
+      "title": "course name enna",
+      "created_at": "2025-12-08T09:12:50",
+      "messages": [
+        {
+          "role": "user",
+          "content": "course name enna"
+        },
+        {
+          "role": "assistant",
+          "content": "Course name: Learn Python - Free Course With Certification."
+        },
+        {
+          "role": "user",
+          "content": "yaru co-founder"
+        },
+        {
+          "role": "assistant",
+          "content": "Unfortunately, the provided context does not mention a \"yaru co-founder\". The context mentions Sahil Miglani and Bittoo Aggarwal as the Co-Founder and Program Director, respectively, but there is no mention of a \"yaru co-founder\"."
+        },
+        {
+          "role": "user",
+          "content": "can you tell yaru co-founder"
+        },
+        {
+          "role": "assistant",
+          "content": "I cannot verify the co-founder of Yalini B."
+        },
+        {
+          "role": "user",
+          "content": "yaru co-founder intha course ku"
+        },
+        {
+          "role": "assistant",
+          "content": "Sahil Miglani ah yaru co-founder page 1."
+        }
+      ]
+    },
+    {
+      "id": "e33737f0-f425-4cd6-83e8-29b65859296f",
+      "title": "what is the title",
+      "created_at": "2025-12-08T14:41:20",
+      "messages": [
+        {
+          "role": "user",
+          "content": "what is the title"
+        },
+        {
+          "role": "assistant",
+          "content": "Unfortunately, the title of the book is not provided in the given context."
+        },
+        {
+          "role": "user",
+          "content": "what is this pdf about"
+        },
+        {
+          "role": "assistant",
+          "content": "This PDF appears to be about Business Analysis Techniques, specifically providing guidance on how to conduct business analysis studies, including document specifications, investigating situations, and creating business cases."
+        },
+        {
+          "role": "user",
+          "content": "summary of page 40"
+        },
+        {
+          "role": "assistant",
+          "content": "Unfortunately, the provided context does not include page 40. The context only includes the table of contents, list of figures and tables, and a few paragraphs from chapters 1 and 2. There is no information available to provide a summary of page 40."
+        },
+        {
+          "role": "user",
+          "content": "give a content present in page number 50 in that pdf"
+        },
+        {
+          "role": "assistant",
+          "content": "Unfortunately, I don't have the ability to access the PDF file or its contents. However, I can try to help you find the information you're looking for.\n\nBased on the context you provided, it seems that page 50 is likely to be part of the document that discusses \"INVESTIGATE SITUATION\" and \"BUSINESS ANALYSIS TECHNIQUES\".\n\nIf you could provide more context or information about what you're looking for on page 50, I may be able to help you find it. Alternatively, you can also try searching for the specific topic or keyword on page 50, and I can try to provide a general answer based on the context."
+        }
+      ]
+    },
+    {
+      "id": "38decd1a-6a67-4f76-9407-cb8855d57ea3",
+      "title": "explain page 1",
+      "created_at": "2025-12-08T16:00:39",
+      "messages": [
+        {
+          "role": "user",
+          "content": "explain page 1"
+        },
+        {
+          "role": "assistant",
+          "content": "Page 1 is about Organizational Behavior. The content is structured to provide deep subject clarity with visual learning support, including tables, charts, and images. It covers the following topics:\n\n* Concept Explanation\n* Vision\n* Long-term aspirational goal\n* Mission\n* Purpose and reason for existence\n* Model\n* Use Case\n* Real Example\n* SWOT\n* Strategy\n* Building Apple Product Launch\n* PESTEL Environment Analysis\n\nHowever, the content for Organizational Behavior on Page 1 is incomplete, as the section for Automobile Industry is missing."
+        },
+        {
+          "role": "user",
+          "content": "explain page 2 bussiness growth trend"
+        },
+        {
+          "role": "assistant",
+          "content": "Unfortunately, there is no information about business growth trend on Page 2. The content on Page 2 appears to be about Organizational Behavior, with sections on Concept Explanation, Vision, Long-term aspirational goal, Mission, Purpose and reason for existence, Model, Use Case, Real Example, SWOT, Strategy, Building Apple Product Launch, and PESTEL Environment Analysis. There is no mention of business growth trend."
+        }
+      ]
+    },
+    {
+      "id": "6f33f9a8-a9b5-49a7-afac-b2435d9a848a",
+      "title": "explain page 3",
+      "created_at": "2025-12-08T16:31:26",
+      "messages": [
+        {
+          "role": "user",
+          "content": "explain page 3"
+        },
+        {
+          "role": "assistant",
+          "content": "Based on the provided context, Page 3 appears to be about Finance. However, the content is incomplete, and only the following information is available:\n\n* The page is part of upgraded MBA notes.\n* The content includes multiple tables, charts, and images.\n* The content is structured to provide deep subject clarity with visual learning support.\n* The following sections are mentioned:\n\t+ Concept Explanation\n\t+ Vision\n\t+ Long-term aspirational goal\n\t+ Mission\n\t+ Purpose and reason for existence\n\t+ Model\n\t+ Use Case\n\t+ Real Example\n\t+ SWOT\n\t+ Strategy\n\t+ Building Apple Product Launch\n\t+ PESTEL Environment Analysis\n\t+ Automobile Industry"
+        },
+        {
+          "role": "user",
+          "content": "explain that chart"
+        },
+        {
+          "role": "assistant",
+          "content": "Unfortunately, the context provided does not contain enough information to accurately explain the chart. The descriptions mention various axes, data points, labels, and annotations, but the specific details and relationships between the data points are not clear.\n\nWithout more information, it's difficult to provide a detailed explanation of the chart. If you could provide more context or details about the chart, I would be happy to try and help further."
+        }
+      ]
+    },
+    {
+      "id": "581a6cb0-1939-4dea-8742-12f45cb1587d",
+      "title": "what is the main overview of the pdf",
+      "created_at": "2025-12-09T03:12:39",
+      "messages": [
+        {
+          "role": "user",
+          "content": "what is the main overview of the pdf"
+        },
+        {
+          "role": "assistant",
+          "content": "Error: OpenRouter request failed: HTTPSConnectionPool(host='openrouter.ai', port=443): Max retries exceeded with url: /api/v1/chat/completions (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x000002484E22D5D0>: Failed to resolve 'openrouter.ai' ([Errno 11001] getaddrinfo failed)\"))"
+        }
+      ]
+    }
+  ]
+}

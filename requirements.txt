@@ -1,0 +1,14 @@
+python-dotenv
+pdfplumber
+pdf2image
+pytesseract
+PyMuPDF
+Pillow
+camelot-py[cv]
+pymongo
+sentence-transformers
+chromadb
+requests
+tabulate
+streamlit
+langdetect
