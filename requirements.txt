@@ -12,3 +12,5 @@ requests
 tabulate
 streamlit
 langdetect
+google-generativeai
+openai

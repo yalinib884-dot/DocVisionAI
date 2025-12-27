@@ -1,15 +1,33 @@
-"""Retrieval and source-attribution helper functions.
+"""Retrieval and answer helper functions for the PDF chatbot.
 
-This module provides `answer_query` which retrieves top-k chunks from the
-`pdf_docs` Chroma collection and returns merged context and source metadata.
+This module does two main things:
+
+- `answer_query` → retrieves the most relevant chunks from the `pdf_docs`
+    Chroma collection.
+- `call_llm_openrouter` → despite the legacy name, this now calls **OpenAI**
+    (ChatGPT / GPT‑4 family) to generate the final answer from the retrieved
+    context, and falls back to a simple local answer if the API cannot be
+    reached.
 """
 from typing import List, Dict, Any
+import os
 import re
 
 import requests
 from langdetect import detect, DetectorFactory, LangDetectException
 
-from extractor import collection, embedding_model, OPENROUTER_API_KEY, OPENROUTER_ENDPOINT, QWEN_MODEL, HEADERS
+from extractor import collection, embedding_model
+
+try:  # OpenAI client for ChatGPT / GPT-4 family
+    from openai import OpenAI
+except ImportError:  # pragma: no cover
+    OpenAI = None
+
+# OpenAI configuration (single, preferred backend)
+_OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+_OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+_openai_client = OpenAI(api_key=_OPENAI_KEY) if (_OPENAI_KEY and OpenAI is not None) else None
 
 
 DetectorFactory.seed = 0
@@ -191,45 +209,49 @@ def call_llm_openrouter(question: str, context: str, temperature: float = 0.0, m
         f"Use only the context; if information is missing, say so. {response_hint}"
     )
 
-    if not OPENROUTER_API_KEY:
-        # no remote key — return a safe fallback combining context and question
-        base = (context[:2000] + "\n\n" + "Answer (fallback): " + question)[:4000]
+    def _build_fallback_answer(reason: str) -> Dict[str, Any]:
+        """Return a local, context-based fallback answer when remote LLM is unavailable."""
+
+        base = (context[:2000] + "\n\n" + "Answer (fallback, no remote LLM): " + question)[:4000]
         if style == "tamil":
-            base = "API விசை கிடைக்காததால், உருவாக்கப்பட்ட பதில் ஆங்கிலத்தில் மட்டுமே உள்ளது.\n" + base
+            prefix = (
+                "LLM API கிடைக்கவில்லை (" + reason + "). "
+                "அதனால், கீழே உள்ள பதில் context அடிப்படையில் ஒரு எளிய சுருக்கம் மட்டுமே.\n"
+            )
+            base = prefix + base
         elif style == "tanglish":
-            base = "API key missing, so fallback answer is in English. Tanglish mode is unavailable in fallback.\n" + base
+            prefix = (
+                "LLM API not available (" + reason + "). "
+                "So this is a simple fallback answer using only the retrieved context.\n"
+            )
+            base = prefix + base
+        else:
+            prefix = (
+                "LLM backend is unavailable (" + reason + "). "
+                "Showing a simple fallback answer based only on retrieved context.\n"
+            )
+            base = prefix + base
         return {"answer": base, "raw": None}
 
-    payload = {
-        "model": QWEN_MODEL,
-        "messages": [
-            {"role": "system", "content": prompt_system},
-            {"role": "user", "content": user_text}
-        ],
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-    }
+    # Single remote backend: OpenAI
+    if _openai_client is not None:
+        try:
+            resp = _openai_client.chat.completions.create(
+                model=_OPENAI_MODEL,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                messages=[
+                    {"role": "system", "content": prompt_system},
+                    {"role": "user", "content": user_text},
+                ],
+            )
+            content = resp.choices[0].message.content or ""
+            return {
+                "answer": content.strip(),
+                "raw": resp.to_dict_recursive() if hasattr(resp, "to_dict_recursive") else None,
+            }
+        except Exception as e:
+            return _build_fallback_answer(f"OpenAI request failed: {e}")
 
-    try:
-        resp = requests.post(OPENROUTER_ENDPOINT, headers=HEADERS, json=payload, timeout=60)
-    except Exception as e:
-        return {"error": f"OpenRouter request failed: {e}"}
-
-    if resp.status_code != 200:
-        return {"error": f"OpenRouter API error {resp.status_code}: {resp.text}"}
-
-    try:
-        j = resp.json()
-    except Exception as e:
-        return {"error": f"Invalid JSON response: {e}"}
-
-    # defensive parsing - many chat APIs return choices -> message -> content
-    try:
-        content = j.get("choices", [{}])[0].get("message", {}).get("content", "")
-        if not content:
-            # try older style
-            content = j.get("choices", [{}])[0].get("text", "")
-    except Exception:
-        content = ""
-
-    return {"answer": content.strip(), "raw": j}
+    # No usable OpenAI client – always return a safe local fallback.
+    return _build_fallback_answer("no usable OpenAI client configured")
