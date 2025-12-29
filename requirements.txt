@@ -14,3 +14,4 @@ streamlit
 langdetect
 google-generativeai
 openai
+easyocr

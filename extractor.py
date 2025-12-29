@@ -12,9 +12,15 @@ from sentence_transformers import SentenceTransformer
 import chromadb
 import requests
 import mimetypes
+import numpy as np
 from pathlib import Path
+import io
 from typing import Callable, Optional
 from dotenv import load_dotenv
+try:
+    import easyocr
+except Exception:  # easyocr is optional, used for handwriting OCR if installed
+    easyocr = None
 load_dotenv()
 
 # ---------- CONFIG ----------
@@ -66,6 +72,14 @@ mongo_client = MongoClient("mongodb://localhost:27017/")
 mongo_db = mongo_client["mytestdb"]
 tables_collection = mongo_db["pdf_tables"]
 
+# ---------- Handwriting OCR (EasyOCR, optional) ----------
+_easyocr_reader = None
+if easyocr is not None:
+    try:
+        _easyocr_reader = easyocr.Reader(["en"], gpu=False)
+    except Exception:
+        _easyocr_reader = None
+
 # ---------- OpenRouter / Qwen config ----------
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
@@ -82,6 +96,7 @@ def extract_text(
     pdf_path,
     chunk_size=500,
     use_ocr: bool = True,
+    ocr_engine: str = "tesseract",
     progress_callback: Optional[Callable[[int, int], None]] = None,
 ):
     """
@@ -89,7 +104,14 @@ def extract_text(
     Returns a list of (text_chunk, page_number) tuples.
     """
     text_chunks = []
+
+    # Use pdfplumber for native text and PyMuPDF for OCR rasterization.
     with pdfplumber.open(pdf_path) as pdf:
+        try:
+            ocr_doc = fitz.open(pdf_path)
+        except Exception:
+            ocr_doc = None
+
         total_pages = len(pdf.pages) or 1
         for i, page in enumerate(pdf.pages, start=1):
             text = page.extract_text()
@@ -99,20 +121,61 @@ def extract_text(
                     chunk = " ".join(words[j:j + chunk_size])
                     text_chunks.append((chunk, i))
             elif use_ocr:
-                # fallback: OCR the page to text
+                # fallback: OCR the page to text using PyMuPDF rasterization first
+                images = []
                 try:
-                    if POPPLER_PATH:
-                        images = convert_from_path(pdf_path, first_page=i, last_page=i, dpi=200, poppler_path=POPPLER_PATH)
-                    else:
-                        images = convert_from_path(pdf_path, first_page=i, last_page=i, dpi=200)
+                    if ocr_doc is not None:
+                        page_ocr = ocr_doc.load_page(i - 1)
+                        pix = page_ocr.get_pixmap(dpi=200)
+                        img_data = pix.tobytes("png")
+                        img = Image.open(io.BytesIO(img_data))
+                        images = [img]
                 except Exception:
                     images = []
+
+                # If PyMuPDF path failed, fall back to pdf2image + Poppler if available.
+                if not images:
+                    try:
+                        if POPPLER_PATH:
+                            images = convert_from_path(
+                                pdf_path,
+                                first_page=i,
+                                last_page=i,
+                                dpi=200,
+                                poppler_path=POPPLER_PATH,
+                            )
+                        else:
+                            images = convert_from_path(pdf_path, first_page=i, last_page=i, dpi=200)
+                    except Exception:
+                        images = []
+
                 if images:
-                    ocr_text = pytesseract.image_to_string(images[0], lang="eng")
-                    words = ocr_text.split()
-                    for j in range(0, len(words), chunk_size):
-                        chunk = " ".join(words[j:j + chunk_size])
-                        text_chunks.append((chunk, i))
+                    # If handwriting OCR is requested and EasyOCR is available, use it.
+                    if ocr_engine.lower() == "handwriting" and _easyocr_reader is not None:
+                        try:
+                            img_np = np.array(images[0])
+                            lines = _easyocr_reader.readtext(img_np, detail=0)
+                            ocr_text = " ".join(lines)
+                        except Exception:
+                            ocr_text = ""
+                    else:
+                        # Default: Tesseract OCR for printed text
+                        try:
+                            ocr_text = pytesseract.image_to_string(images[0], lang="eng")
+                        except Exception:
+                            ocr_text = ""
+
+                    if ocr_text:
+                        words = ocr_text.split()
+                        for j in range(0, len(words), chunk_size):
+                            chunk = " ".join(words[j:j + chunk_size])
+                            text_chunks.append((chunk, i))
+
+        if ocr_doc is not None:
+            try:
+                ocr_doc.close()
+            except Exception:
+                pass
             if progress_callback:
                 try:
                     progress_callback(i, total_pages)

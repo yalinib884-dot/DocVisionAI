@@ -202,6 +202,11 @@ fast_mode = st.sidebar.checkbox(
     value=True,
     help="When enabled, only text is stored in Chroma (no images/tables) for faster processing.",
 )
+handwriting_mode = st.sidebar.checkbox(
+    "Handwritten PDF (use handwriting OCR)",
+    value=False,
+    help="Enable this when your PDF pages are handwritten; uses a handwriting-focused OCR engine if available.",
+)
 
 st.sidebar.header("Retrieval Settings")
 top_k = st.sidebar.slider(
@@ -268,6 +273,7 @@ def run_ingestion(
     pdf_path: Path,
     status: dict | None = None,
     progress: dict | None = None,
+    handwriting_mode: bool = False,
 ) -> dict[str, int]:
     """Replicate the CLI ingestion pipeline for a given PDF."""
     progress = progress or {}
@@ -308,6 +314,7 @@ def run_ingestion(
     text_chunks = extract_text(
         str(pdf_path),
         chunk_size=chunk_size,
+        ocr_engine="handwriting" if handwriting_mode else "tesseract",
         progress_callback=lambda current, total: _update_progress("text", current, total, "pages"),
     )
     st.toast(f"Text extraction complete — {len(text_chunks)} chunks", icon="📄")
@@ -519,7 +526,12 @@ with ingest_tab:
                     if clear_before:
                         clear_collection()
                     st.toast("Processing started…", icon="⌛")
-                    res = run_ingestion(saved_path, status=status_map, progress=progress_map)
+                    res = run_ingestion(
+                        saved_path,
+                        status=status_map,
+                        progress=progress_map,
+                        handwriting_mode=handwriting_mode,
+                    )
                 st.session_state["last_run_stats"] = res
                 total_embeddings = res.get("text_count", 0) + res.get("image_count", 0)
                 chroma_placeholder.markdown(
