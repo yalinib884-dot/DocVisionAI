@@ -1,6 +1,5 @@
 # extractor.py
 import os
-import base64
 import pdfplumber
 from pdf2image import convert_from_path
 import pytesseract
@@ -10,8 +9,6 @@ import camelot
 from pymongo import MongoClient
 from sentence_transformers import SentenceTransformer
 import chromadb
-import requests
-import mimetypes
 import numpy as np
 from pathlib import Path
 import io
@@ -79,17 +76,6 @@ if easyocr is not None:
         _easyocr_reader = easyocr.Reader(["en"], gpu=False)
     except Exception:
         _easyocr_reader = None
-
-# ---------- OpenRouter / Qwen config ----------
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
-# Use a broadly available OpenRouter model for text QA
-QWEN_MODEL = "meta-llama/llama-3.1-8b-instruct"
-
-# build headers only when key exists; avoid raising at import time
-HEADERS = {"Content-Type": "application/json"}
-if OPENROUTER_API_KEY:
-    HEADERS["Authorization"] = f"Bearer {OPENROUTER_API_KEY}"
 
 # ---------- STEP 1: Extract text ----------
 def extract_text(
@@ -229,75 +215,36 @@ def extract_images_from_pdf(
 
     return image_paths
 
-# ---------- Utility: encode image to data URI ----------
-def image_to_data_uri(image_path):
-    mime_type, _ = mimetypes.guess_type(image_path)
-    if mime_type is None:
-        mime_type = "image/png"
-    with open(image_path, "rb") as f:
-        b64 = base64.b64encode(f.read()).decode("utf-8")
-    return f"data:{mime_type};base64,{b64}"
+"""Image caption generation using local OCR only.
 
-# ---------- STEP 3: Generate captions using Qwen via OpenRouter ----------
-def generate_caption_openrouter(image_path):
-    """
-    Ask Qwen to generate a short caption for the image.
-    Returns caption string.
-    """
-    # If API key not configured, fallback to local OCR caption
-    if not OPENROUTER_API_KEY:
-        try:
-            text = pytesseract.image_to_string(Image.open(image_path))
-            return text.strip()[:500]
-        except Exception:
-            return ""
+Even though the function name still contains "openrouter" for backward
+compatibility with the rest of the app, this implementation does **not**
+call OpenRouter or any remote LLM. Instead it uses:
 
-    # Avoid sending extremely large multipart payloads where possible — embed small images or provide URLs.
-    data_uri = image_to_data_uri(image_path)
-    system = "You are an image captioning assistant. Provide a short descriptive caption (1-2 sentences) of the image focusing on charts, tables, text, or important visual elements."
-    # Use a single string message with the data URI to improve compatibility
-    user_text = (
-        "Caption the following image in 1-2 sentences. If it's a chart or table, mention axis labels or table headers if visible.\n"
-        f"Image data (data URI):\n{data_uri}\n"
-    )
-    payload = {
-        "model": QWEN_MODEL,
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user", "content": user_text}
-        ],
-        "temperature": 0.0,
-        "max_tokens": 200
-    }
+- EasyOCR (if available) to read text/handwritten content from the image.
+- Otherwise, Tesseract OCR via pytesseract.
+"""
 
+
+def generate_caption_openrouter(image_path: str) -> str:
     try:
-        resp = requests.post(OPENROUTER_ENDPOINT, headers=HEADERS, json=payload, timeout=60)
-    except Exception as e:
-        # network/timeout — fallback to OCR
-        try:
-            return pytesseract.image_to_string(Image.open(image_path)).strip()
-        except Exception:
-            return ""
-
-    if resp.status_code != 200:
-        # fallback: use OCR if API failed
-        try:
-            return pytesseract.image_to_string(Image.open(image_path)).strip()
-        except Exception:
-            raise RuntimeError(f"OpenRouter caption error: {resp.status_code} {resp.text}")
-
-    try:
-        j = resp.json()
-    except Exception:
-        try:
-            return pytesseract.image_to_string(Image.open(image_path)).strip()
-        except Exception:
-            return ""
-
-    # defensive parsing
-    try:
-        # many chat APIs return choices -> message -> content
-        return j.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+        img = Image.open(image_path)
+        text = ""
+        # Prefer EasyOCR when installed – better for handwriting and mixed content.
+        if _easyocr_reader is not None:
+            try:
+                img_np = np.array(img)
+                lines = _easyocr_reader.readtext(img_np, detail=0)
+                text = " ".join(lines)
+            except Exception:
+                text = ""
+        # Fallback to Tesseract if EasyOCR is unavailable or failed.
+        if not text:
+            try:
+                text = pytesseract.image_to_string(img, lang="eng")
+            except Exception:
+                text = ""
+        return (text or "").strip()[:500]
     except Exception:
         return ""
 

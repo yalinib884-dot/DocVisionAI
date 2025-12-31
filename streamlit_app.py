@@ -154,24 +154,166 @@ def switch_chat(session_id: str) -> None:
             break
 
 
-st.markdown(
-    """
-    <style>
-    .stApp { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #e2e8f0; }
-    .block-container { padding-top: 2rem; }
-    [data-testid="stSidebar"] { background-color: #0b1220; color: #e2e8f0; }
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3,
-    [data-testid="stSidebar"] h4, [data-testid="stSidebar"] h5, [data-testid="stSidebar"] h6,
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] label { color: #e2e8f0 !important; }
-    .stTabs [data-baseweb="tab"] { color: #c7d2fe; background-color: rgba(37, 99, 235, 0.15); border-radius: 8px; margin-right: 0.5rem; }
-    .stTabs [aria-selected="true"] { background-color: #2563eb !important; color: #fff !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35); }
-    .status-card { background: rgba(30, 64, 175, 0.35); border-radius: 12px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; }
-    .status-card span { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #bfdbfe; }
-    .status-card strong { font-size: 1.35rem; color: #fff; }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ================= ROOT VARIABLES ================= */
+:root {
+  /* Background with image + overlay */
+  --bg-main:
+    linear-gradient(
+      rgba(10, 14, 28, 0.92),
+      rgba(10, 14, 28, 0.92)
+    ),
+    url("https://tse1.mm.bing.net/th/id/OIP.pdFbr659dl32Bo-wKXhBcwHaC5?pid=Api&P=0&h=180"); /* AI tech background image */
+
+  /* Glass surfaces */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.10);
+
+  /* Core palette */
+  --violet: #7c6cff;     /* Violet */
+  --indigo: #4338ca;     /* Indigo */
+  --cyan: #22d3ee;       /* Cyan */
+  --green: #4ade80;      /* Soft Green */
+
+  /* Text */
+  --text-main: #f1f5f9;  /* Soft white */
+  --text-soft: #cbd5e1;  /* Muted gray */
+}
+
+/* ================= APP BASE ================= */
+.stApp {
+  background: var(--bg-main);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+}
+
+/* ================= HEADINGS ================= */
+h1, h2, h3, h4 {
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.3px;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+
+/* ================= SIDEBAR ================= */
+section[data-testid="stSidebar"] {
+  background: rgba(10, 14, 28, 0.95);
+  border-right: 1px solid var(--glass-border);
+}
+
+section[data-testid="stSidebar"] * {
+  color: var(--text-main) !important;
+  font-size: 15px;
+}
+
+/* ================= GLASS CARDS ================= */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+
+/* ================= TABS ================= */
+.stTabs [data-baseweb="tab"] {
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  color: var(--text-soft);
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.stTabs [aria-selected="true"] {
+  background: linear-gradient(135deg, var(--violet), var(--indigo)) !important;
+  color: white !important;
+}
+
+/* ================= BUTTONS (HOVER REQUIRED) ================= */
+.stButton > button {
+  background: linear-gradient(135deg, var(--violet), var(--indigo));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.stButton > button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(124,108,255,0.35);
+}
+
+/* ================= INPUTS ================= */
+input, textarea {
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 12px !important;
+  color: var(--text-main) !important;
+  font-size: 15px;
+}
+
+/* ================= CHAT (CALM & PROFESSIONAL) ================= */
+[data-testid="stChatMessage"] {
+  background: #32174D !important; /* Russian Dark Violet background */
+  border-radius: 12px;            /* Rounded chat bubbles */
+  padding: 8px 12px;              /* Some padding for readability */
+  margin-bottom: 6px;             /* Spacing between messages */
+  color: var(--text-main) !important; /* Keep text readable */
+  border: 1px solid rgba(255,255,255,0.1) !important; /* Optional subtle border */
+}
+
+[data-testid="stChatMessage"] p {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ================= STATUS / STATS ================= */
+.status-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.status-card span {
+  color: var(--text-soft);
+  font-size: 0.8rem;
+}
+
+.status-card strong {
+  font-size: 1.4rem;
+  color: var(--text-main);
+}
+
+/* ================= PROGRESS BAR ================= */
+.stProgress > div > div {
+  background: linear-gradient(90deg, var(--cyan), var(--green)) !important;
+}
+
+/* ================= SCROLLBAR ================= */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--violet), var(--cyan));
+  border-radius: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
+
 
 st.title("📄 PDF Chatbot — Retrieval + LLM")
 
@@ -220,7 +362,7 @@ st.session_state["top_k"] = top_k
 
 with st.sidebar.expander("Help", expanded=False):
     st.markdown(
-        "- Add your OpenRouter key to `.env` as `OPENROUTER_API_KEY`.\n"
+        "- Add your OpenAI key to `.env` as `OPENAI_API_KEY`.\n"
         "- Ingestion writes embeddings to `chroma_db/`; rerun if you replace the PDF.\n"
         "- Questions use the shared Chroma collection (`pdf_docs`).\n"
         "- You can ask questions in English, Tamil, or Tanglish; answers follow the same style."
@@ -554,7 +696,6 @@ with ingest_tab:
                     f"Embeddings updated — text chunks: {res.get('text_count', 0)}, "
                     f"image entries: {res.get('image_count', 0)}"
                 )
-
 with qa_tab:
     st.markdown("#### Conversation")
 
